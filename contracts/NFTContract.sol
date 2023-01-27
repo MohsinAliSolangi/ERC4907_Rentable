@@ -4,18 +4,18 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "./IERC4907.sol";
 
 error totalSupplyExceed();
 error PleaseWaitForPreSaleSaleStart();
 error YouDontHaveBalance();
 error YourPresaleMintingLimitExceed();
 error WaitForSaleActivation();
+error youAreNotWhiteLidted();
 
-contract MyToken is ERC721, Ownable {
-    using Counters for Counters.Counter;
-    Counters.Counter public _tokenIdCounter;
-
+contract Rentable  is ERC721,Ownable {
+    
     bool public preSale;
     uint256 public limitPreSale=1;
     uint256 public preSaleStartTime;
@@ -29,24 +29,29 @@ contract MyToken is ERC721, Ownable {
     uint256 public SalePrice= 0.1691 ether;
 
     uint256 public supply=1691;
+    uint256 public tokenIds=51;
+    uint256 public ownerReserve;
+    uint256 public mintedNFTs;
 
-    Details [] public details;
+    uint64 public rentAmount = 1 ether;
+
+
+    struct UserInfo 
+    {
+        address user;  
+        uint64 expires; 
+    }
+    
+    event UpdateUser(uint256 indexed tokenId, address indexed user, uint64 expires);
+    
+    mapping (uint256  => UserInfo) internal _users;
+    mapping(address => bool) public whiteListUser;
 
     IERC20 TOKEN;
 
-    struct Details{
-        uint256 TotalMintedNfts;
-        uint256 MintedNFTByOwner;
-        uint256 PreSaleEndTime;
-        uint256 PreSaleStartTime;
-        uint256 SaleEndTime;
-        uint256 SaleStartTime;
-        uint256 SalePrice;
-        uint256 preSalePrice;
-        uint256 totalSupply;
-        uint256 limitOfuserSale;
-        uint256 limitOfuserPreSale;
-    }
+    // Calculated from `merkle_tree.js`
+    bytes32 public merkleRoot = 
+    0xeeefd63003e0e702cb41cd0043015a6e26ddb38073cc6ffeb0ba3e808ba8c097;
 
 
     constructor(address _token) ERC721("MyToken", "MTK") {
@@ -55,45 +60,54 @@ contract MyToken is ERC721, Ownable {
     }
 
     function mint(address to) public {
-    if(_tokenIdCounter.current()>=1691){
-        revert totalSupplyExceed();
+    
+    if(owner()==msg.sender && ownerReserve<=50){
+        ownerReserve++;
+        mintedNFTs++;
+        _safeMint(to,ownerReserve); 
     }
     
-    if(!preSale && !sale){
-     revert PleaseWaitForPreSaleSaleStart();
+   else if(mintedNFTs>=supply){
+        revert totalSupplyExceed();
     }
 
-    if(preSale==true){
+   else if(!preSale && !sale){
+     revert PleaseWaitForPreSaleSaleStart();
+    }
+    
+   else if(preSale==true){
      if(block.timestamp>preSaleEndTime){
          preSale=false;
      }
-     if(TOKEN.balanceOf(msg.sender)<preSalePrice){
+     else if (whiteListUser[msg.sender] == false){
+         revert youAreNotWhiteLidted();
+     }
+     else if(TOKEN.balanceOf(msg.sender)<preSalePrice){
             revert YouDontHaveBalance();
         }
-     if(balanceOf(msg.sender)>=limitPreSale){
+     else if(balanceOf(msg.sender)>=limitPreSale){
             revert YourPresaleMintingLimitExceed();
         }   
-        _tokenIdCounter.increment();
-        uint256 tokenId = _tokenIdCounter.current();
-        _safeMint(to, tokenId);
+        _safeMint(to, tokenIds);
         TOKEN.transferFrom(msg.sender,address(this),preSalePrice);
-        
+        tokenIds++;
+        mintedNFTs++; 
     }   
     else if(sale){
     if(block.timestamp>saleEndTime){
          sale=false;
      }
-     if(TOKEN.balanceOf(msg.sender)<SalePrice){
+     else if(TOKEN.balanceOf(msg.sender)<SalePrice){
             revert YouDontHaveBalance();
         }
-     if(balanceOf(msg.sender)>=limitSale){
+     else if(balanceOf(msg.sender)>=limitSale){
             revert YourPresaleMintingLimitExceed();
         }
-        _tokenIdCounter.increment();
-        uint256 tokenId = _tokenIdCounter.current();
-        _safeMint(to, tokenId);
+        _safeMint(to, tokenIds);
         TOKEN.transferFrom(msg.sender,address(this),SalePrice);    
-    }
+        tokenIds++;
+        mintedNFTs++;
+    }   
     
     }
 
@@ -107,70 +121,117 @@ contract MyToken is ERC721, Ownable {
      if(balanceOf(msg.sender)>=3){
             revert YourPresaleMintingLimitExceed();
         }   
-        _tokenIdCounter.increment();
-        uint256 tokenId = _tokenIdCounter.current();
-        _safeMint(msg.sender, tokenId);
-        TOKEN.transferFrom(msg.sender,address(this),(SalePrice*_amount));
-        
+     
+     TOKEN.transferFrom(msg.sender,address(this),(SalePrice*_amount));
+   
+    for (uint256 i; i < _amount; i++ ){     
+            _safeMint(msg.sender, tokenIds);
+            tokenIds++;
+            mintedNFTs++;
+        }
+       
     }   
     
 
-    function ActivePreSale(uint256 _time) public {
+    function activePreSale(uint256 _time) public {
         preSaleStartTime=block.timestamp +_time;
         preSaleEndTime=preSaleStartTime+30 minutes; 
         preSale=true;
        
     }
 
-    function ActiveSale(uint256 _time) public {
+    function activeSale(uint256 _time) public {
         saleStartTime=block.timestamp +_time;
         saleEndTime=saleStartTime+30 minutes;
         sale=true;
         preSale=false; 
-    }   
+    }  
+       
 
-    function status() public view returns(Details[] memory) {
-    uint256 tokenId=_tokenIdCounter.current();
-    uint256 tokensMint;
-    for(uint256 i=0; i<(tokenId+1);i++){
-        if(_exists(i)){
-           tokensMint++; 
+    function stats() public view returns (uint256[] memory) {
+    uint256[] memory res = new uint256[](11);
+        res[0] = mintedNFTs;
+        res[1] = balanceOf(owner());
+        res[2] = preSaleEndTime;
+        res[3] = preSaleStartTime;
+        res[4] = saleEndTime;
+        res[5] = saleStartTime;
+        res[6] = SalePrice;
+        res[7] = preSalePrice;
+        res[8] = supply;
+        res[9] = limitSale;
+        res[10] = limitPreSale;
+    return res;
+  }
+
+    function getNftType(address nftContract) public view returns(string memory){
+     if(IERC721(nftContract).supportsInterface(0x80ac58cd))
+      return "ERC721" ;
+     else
+      return "ERC1155" ;
+    }
+
+  //++++++++++++++++++++++++ NFTRental+++++++++++++++//
+    
+    function setUser(uint256 tokenId, address user, uint64 expires) public virtual{
+        require(expires>2,"Please add more time");
+        require(_isApprovedOrOwner(msg.sender, tokenId), "ERC4907: transfer caller is not owner nor approved");
+        UserInfo storage info =  _users[tokenId];
+        require(info.user==address(0),"nft already on Rent"); 
+        
+        TOKEN.transferFrom(user,msg.sender,rentAmount);
+        
+        uint64 temp=(uint64(block.timestamp)+expires);     
+        info.user = user;
+        info.expires = temp;
+        emit UpdateUser(tokenId, user, temp);
+    }
+
+
+    function userOf(uint256 tokenId) public view virtual returns(address){
+        if( uint256(_users[tokenId].expires) >=  block.timestamp){
+            return  _users[tokenId].user;
+        }
+        else{
+            return owner();
         }
     }
-    details.push(Details({
-        TotalMintedNfts: tokensMint,
-        MintedNFTByOwner: balanceOf(owner()),
-        PreSaleEndTime: preSaleEndTime,
-        PreSaleStartTime:preSaleStartTime,
-        SaleEndTime: saleEndTime,
-        SaleStartTime: saleStartTime,
-        SalePrice: SalePrice,
-        preSalePrice: preSalePrice,
-        totalSupply: supply,
-        limitOfuserSale: limitSale, 
-        limitOfuserPreSale: limitPreSale
-    }));
-
-    uint256 id = details.length;
-        Details[] memory sales = new Details[](id);
-    for(uint256 i=0; i<id; i++){
-        sales[i];
-    }
-        return sales;
-    }
-
-
     
-    function DetailsOfNFT()public view returns(Details[] memory){
-        uint256 id = details.length;
-        Details[] memory sales = new Details[](id);
-    for(uint256 i=0; i<id; i++){
-        sales[i];
+    function userExpires(uint256 tokenId) public view virtual returns(uint256){
+        if( uint256(_users[tokenId].expires) >=  block.timestamp){
+            return _users[tokenId].expires;
+        }
+        else{
+            return 1010101010101010101010101010;
+        }
     }
-        return sales;
-    }
- 
 
-   
+     function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal {
+        super._beforeTokenTransfer(from, to, tokenId,1);
+        if (from != to && _users[tokenId].user != address(0)) {
+            delete _users[tokenId];
+            emit UpdateUser(tokenId, address(0), 0);
+        }
+    }
+
+    //++++++++++++++++++++Marklee Tree +++++++++++++++
+  
+    // --- FUNCTIONS ---- //
+
+    function addwhiteListUser(bytes32[] calldata _merkleProof) public {
+        require(!whiteListUser[msg.sender], "Address already Added");
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
+        require(
+            MerkleProof.verify(_merkleProof, merkleRoot, leaf),
+            "Invalid Merkle Proof."
+        );
+        whiteListUser[msg.sender] = true;
+    }
+
+  
 
 }
