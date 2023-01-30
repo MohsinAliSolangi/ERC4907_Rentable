@@ -14,16 +14,21 @@ let whitelistAddresses = [
     // The address in remix
   ];
 
+  [
+    "0x04a10bfd00977f54cc3450c9b25c9b3a502a089eba0097ba35fc33c4ea5fcb54",
+    "0x9d997719c0a5b5f6db9b8ac69a988be57cf324cb9fffd51dc2c37544bb520d65"
+  ]
+
 // 3. Create a new array of `leafNodes` by hashing all indexes of the `whitelistAddresses`
 // using `keccak256`. Then creates a Merkle Tree object using keccak256 as the algorithm.
 //
 // The leaves, merkleTree, and rootHas are all PRE-DETERMINED prior to whitelist claim
 const leafNodes = whitelistAddresses.map(addr => keccak256(addr));
 const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true});
-
+const buf2hex = x => '0x' + x.toString('hex')
 // 4. Get root hash of the `merkleeTree` in hexadecimal format (0x)
 // Print out the Entire Merkle Tree.
-const rootHash = merkleTree.getRoot();
+const rootHash = buf2hex(merkleTree.getRoot());
 console.log('Whitelist Merkle Tree\n', merkleTree.toString());
 console.log("Root Hash: ", rootHash);
 
@@ -31,6 +36,15 @@ console.log("Root Hash: ", rootHash);
 
 // CLIENT-SIDE: Use `msg.sender` address to query and API that returns the merkle proof
 // required to derive the root hash of the Merkle Tree
+
+
+
+//here we get proof
+// const leaf = keccak256(leafNodes) // address from wallet using walletconnect/metamask
+// const proof = merkleTree.getProof(leaf).map(x => buf2hex(x.data))
+// console.log("this is proof",proof);
+
+["0x04a10bfd00977f54cc3450c9b25c9b3a502a089eba0097ba35fc33c4ea5fcb54","0x9d997719c0a5b5f6db9b8ac69a988be57cf324cb9fffd51dc2c37544bb520d65"]
 
 // ✅ Positive verification of address
 const claimingAddress = leafNodes[3];
