@@ -1,4 +1,3 @@
----
 # ERC4907-Rentable
 
 ## Overview
@@ -22,7 +21,7 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/ERC4907-Rentable.git
+   git clone https://github.com/MohsinAliSolangi/ERC4907_Rentable.git
    cd ERC4907-Rentable
    ```
 
@@ -57,4 +56,3 @@ For any questions, feedback, or inquiries, feel free to reach out to **Mohsin Al
 🔗 **LinkedIn**: [Mohsin Ali Solangi](https://www.linkedin.com/in/mohsinalisolangi/)
 
 Looking forward to hearing from you! 😄
----
