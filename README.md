@@ -1,38 +1,60 @@
-# Sample Hardhat Project
+---
+# ERC4907-Rentable
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## Overview
 
-Try running some of the following tasks:
+**ERC4907-Rentable** is a smart contract implementation based on the ERC4907 standard, which introduces rental functionality for non-fungible tokens (NFTs). This project enables users to rent their NFTs to others, providing a new way to utilize digital assets while earning passive income.
 
-```shell
-npx hardhat help
-npx hardhat node
-npx hardhat test
-npx hardhat run scripts/deploy.js
-```
+## Features
 
-# Functions of Smart Contract:
-..
-<br />
-1: PreSale/Sale(preSale limit 30mints)(sale 1hour) (done)
-<br />
-2: WhiteListUser(merkle tree root)
-<br />
-4: TotalSupply(1691) (done)
-<br />
-5: PriceOfNFT(presale(0.0027) tokens/sale(0.1691))(done)
-<br />
-6: LimitOfNFT(presale(1)/sale(3)(done)
-<br />
-7: NFTOnRent(you give nft to use for specific time & after That automatic nft backed)
-<br />
-8: mint(presale/sale)(done)
-<br />
-9: bulkMint(Actibe on sale)(done)
-<br />
-10: Reserve(50 nft Reserve for owner)
-<br />
-11: Status(TotalMinted NFTs, Total NFts MInted by owner, PreSale(Start&endTime), Sale(Start&endTime),Price(presale&sale),TotalSuply,Owneraddress,limitofusermint)
+- **NFT Rental:** Allow users to rent their NFTs for a specified duration.
+- **Flexible Terms:** Set rental prices and durations for individual NFTs.
+- **Ownership Management:** Ensure only the rightful owners can rent their NFTs.
 
- 
+## Getting Started
 
+### Prerequisites
+
+- Node.js and npm installed
+- A suitable Ethereum wallet (like MetaMask) for testing.
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/ERC4907-Rentable.git
+   cd ERC4907-Rentable
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Deploy the smart contracts:**
+   Follow the instructions in the `/smart-contracts` folder for deployment on the desired network.
+
+## Usage
+
+- **Renting an NFT:** Users can initiate the rental process through the provided functions in the smart contract.
+- **Managing Rentals:** Owners can view active rentals and manage their listings.
+
+## Technologies Used
+
+- **Solidity:** Smart contract language for Ethereum.
+- **OpenZeppelin:** Libraries for secure smart contract development.
+
+## License
+
+This project is licensed under the MIT License.
+
+## 🚀 Contact
+
+For any questions, feedback, or inquiries, feel free to reach out to **Mohsin Ali Solangi**. You can connect via the following platforms:
+
+🌐 **Linktree**: [Mohsin Ali Solangi](https://linktr.ee/mohsinalisolangi)
+
+🔗 **LinkedIn**: [Mohsin Ali Solangi](https://www.linkedin.com/in/mohsinalisolangi/)
+
+Looking forward to hearing from you! 😄
+---
