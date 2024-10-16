@@ -15,8 +15,8 @@ let whitelistAddresses = [
   ];
 
   [
-    "0x04a10bfd00977f54cc3450c9b25c9b3a502a089eba0097ba35fc33c4ea5fcb54",
-    "0x9d997719c0a5b5f6db9b8ac69a988be57cf324cb9fffd51dc2c37544bb520d65"
+    "Put Account Private Keys Here",
+    "Put Account Private Keys Here"
   ]
 
 // 3. Create a new array of `leafNodes` by hashing all indexes of the `whitelistAddresses`
@@ -44,7 +44,7 @@ console.log("Root Hash: ", rootHash);
 // const proof = merkleTree.getProof(leaf).map(x => buf2hex(x.data))
 // console.log("this is proof",proof);
 
-["0x04a10bfd00977f54cc3450c9b25c9b3a502a089eba0097ba35fc33c4ea5fcb54","0x9d997719c0a5b5f6db9b8ac69a988be57cf324cb9fffd51dc2c37544bb520d65"]
+["Put Account Private Keys Here","Put Account Private Keys Here"]
 
 // ✅ Positive verification of address
 const claimingAddress = leafNodes[3];
